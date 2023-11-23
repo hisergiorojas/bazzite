@@ -8,8 +8,10 @@ Source:         https://gitlab.com/evlaV/valve-hardware-audio-processing/-/archi
 
 BuildRequires:  make
 BuildRequires:  faust
+BuildRequires:  faust-tools
 BuildRequires:  boost-devel
 BuildRequires:  lv2-devel
+BuildRequires:  g++
 
 %description
 Steamdeck Audio Processing
