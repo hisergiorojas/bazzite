@@ -77,11 +77,6 @@ ublue_variants:
   - label: ublue-os/bazzite-surface-nvidia
     ks: /kickstart/ublue-os-nvidia.ks
     flavors:
-      - label: bazzite-surface-nvidia
-        info: Bazzite (Surface Edition for Nvidia GPUs)
-  - label: ublue-os/bazzite-surface-gnome
-    ks: /kickstart/ublue-os.ks
-    flavors:
       - label: bazzite-surface-gnome
         info: Bazzite GNOME (Surface Edition)
   - label: ublue-os/bazzite-surface-gnome-nvidia
