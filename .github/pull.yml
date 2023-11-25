@@ -1,12 +1,6 @@
 version: "1"
 rules:
-  - base: bazzite-main
-    upstream: ublue-os:main
-    mergeMethod: hardreset
-    mergeUnstable: false
   - base: main
-    upstream: bazzite-main
+    upstream: ublue-os:main
     mergeMethod: merge
     mergeUnstable: false
-label: ":arrow_heading_down: pull"
-conflictLabel: "merge-conflict"
