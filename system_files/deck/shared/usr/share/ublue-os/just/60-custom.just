@@ -68,43 +68,6 @@ install-openrazer:
     sudo usermod -a -G plugdev $USER && \
     echo "Please reboot to apply needed changes."
 
-# Install Nix with the Determinate Nix Installer
-install-nix:
-    #!/usr/bin/env bash
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sudo bash -s -- install --no-confirm
-
-# Uninstall Nix
-remove-nix:
-    sudo /nix/nix-installer uninstall
-
-# Install Fleek (https://getfleek.dev/)
-install-fleek:
-    #!/usr/bin/env bash
-    if [[ -d "/nix" ]]; then
-      mkdir -p $HOME/.config/nix
-      echo "experimental-features = nix-command flakes" >> $HOME/.config/nix/nix.conf
-      curl -fsSL https://getfleek.dev/installer | env FORCE=1 bash
-    else
-      echo "Install nix with ujust install-nix before running ujust install-fleek."
-    fi
-
-# Integrate Nix/Fleek applications with system theme
-install-fleek-themes:
-    #!/usr/bin/env bash
-    if [[ -x "/var/usrlocal/bin/fleek" ]]; then
-      IMAGE_INFO="/usr/share/ublue-os/image-info.json"
-      BASE_IMAGE_NAME=$(jq -r '."base-image-name"' < $IMAGE_INFO)
-      if [[ ${BASE_IMAGE_NAME} == 'silverblue' ]]; then
-        fleek add adw-gtk3 --apply
-      else
-        fleek add breeze-icons
-        fleek add libsForQt5.breeze-qt5
-        fleek apply
-      fi
-    else
-      echo "Install fleek with ujust install-fleek before running ujust install-fleek-themes."
-    fi
-
 # Install Greenlight xCloud and xHome streaming AppImage
 get-greenlight:
     #!/usr/bin/env bash
@@ -373,21 +336,31 @@ unhide-grub:
 # Install Deck HD BIOS
 install-deckhd-bios:
     #!/usr/bin/env bash
-    RESOLUTION=$(sudo lshw -json -c display | jq -r .[]."configuration"."resolution")
-    if [[ "${RESOLUTION}" = "1200,1920" ]]; then
+    SYS_ID="$(cat /sys/devices/virtual/dmi/id/product_name)"
+    if [[ ":Jupiter:" =~ ":$SYS_ID:" ]]; then
+      RESOLUTION=$(sudo lshw -json -c display | jq -r .[]."configuration"."resolution")
+      if [[ "${RESOLUTION}" = "1200,1920" ]]; then
         sudo systemctl mask --now jupiter-biosupdate.service
         wget -q https://deckhd.com/downloads/install.sh -O /tmp/deckhd-install.sh
         chmod +x /tmp/deckhd-install.sh
         sudo ./tmp/deckhd-install.sh
-    else
+      else
         echo "Unable to detect DeckHD. Aborting..."
+      fi
+    else
+      echo "This is only applicable to LCD Steam Decks with the DeckHD screen. Aborting..."
     fi
 
 # Enable BIOS & Firmware update services for the Steam Deck
 enable-deck-bios-firmware-updates:
     #!/usr/bin/env bash
-    sudo systemctl enable jupiter-biosupdate.service
-    sudo systemctl enable jupiter-controller-update.service
+    SYS_ID="$(cat /sys/devices/virtual/dmi/id/product_name)"
+    if [[ ":Jupiter:" =~ ":$SYS_ID:" || ":Galileo:" =~ ":$SYS_ID:" ]]; then
+      sudo systemctl enable jupiter-biosupdate.service
+      sudo systemctl enable jupiter-controller-update.service
+    else
+      echo "This is only applicable to Valve's Steam Deck. Aborting..."
+    fi
 
 # Disable Steam Deck BIOS updates
 disable-bios-updates:

@@ -7,32 +7,31 @@ ARG FEDORA_MAJOR_VERSION="${FEDORA_MAJOR_VERSION:-39}"
 
 FROM ${BASE_IMAGE}:${FEDORA_MAJOR_VERSION} AS bazzite
 
-ARG IMAGE_NAME="${IMAGE_NAME}"
-ARG IMAGE_VENDOR="${IMAGE_VENDOR}"
-ARG IMAGE_FLAVOR="${IMAGE_FLAVOR}"
-ARG AKMODS_FLAVOR="${AKMODS_FLAVOR}"
-ARG BASE_IMAGE_NAME="${BASE_IMAGE_NAME}"
-ARG FEDORA_MAJOR_VERSION="${FEDORA_MAJOR_VERSION}"
+ARG IMAGE_NAME="${IMAGE_NAME:-bazzite}"
+ARG IMAGE_VENDOR="${IMAGE_VENDOR:-ublue-os}"
+ARG IMAGE_FLAVOR="${IMAGE_FLAVOR:-main}"
+ARG AKMODS_FLAVOR="${AKMODS_FLAVOR:-main}"
+ARG BASE_IMAGE_NAME="${BASE_IMAGE_NAME:-kinoite}"
+ARG FEDORA_MAJOR_VERSION="${FEDORA_MAJOR_VERSION:-39}"
 
 COPY system_files/desktop/shared system_files/desktop/${BASE_IMAGE_NAME} /
 
 # Add ublue packages, add needed negativo17 repo and then immediately disable due to incompatibility with RPMFusion
 COPY --from=ghcr.io/ublue-os/akmods:${AKMODS_FLAVOR}-${FEDORA_MAJOR_VERSION} /rpms /tmp/akmods-rpms
 RUN sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo && \
-    wget https://negativo17.org/repos/fedora-multimedia.repo -O /etc/yum.repos.d/negativo17-fedora-multimedia.repo && \
-    rpm-ostree install \
-        /tmp/akmods-rpms/kmods/*xpadneo*.rpm \
-        /tmp/akmods-rpms/kmods/*xpad-noone*.rpm \
-        /tmp/akmods-rpms/kmods/*xone*.rpm \
-        /tmp/akmods-rpms/kmods/*openrazer*.rpm \
-        /tmp/akmods-rpms/kmods/*v4l2loopback*.rpm \
-        /tmp/akmods-rpms/kmods/*wl*.rpm && \
+    sed -i "0,/enabled/ s@enabled=0@enabled=1@g" /etc/yum.repos.d/negativo17-fedora-multimedia.repo && \
     rpm-ostree install \
         /tmp/akmods-rpms/kmods/*gcadapter_oc*.rpm \
         /tmp/akmods-rpms/kmods/*nct6687*.rpm \
+        /tmp/akmods-rpms/kmods/*openrazer*.rpm \
         /tmp/akmods-rpms/kmods/*openrgb*.rpm \
         /tmp/akmods-rpms/kmods/*ryzen-smu*.rpm \
-        /tmp/akmods-rpms/kmods/*winesync*.rpm && \
+        /tmp/akmods-rpms/kmods/*v4l2loopback*.rpm \
+        /tmp/akmods-rpms/kmods/*winesync*.rpm \
+        /tmp/akmods-rpms/kmods/*wl*.rpm \
+        /tmp/akmods-rpms/kmods/*xone*.rpm \
+        /tmp/akmods-rpms/kmods/*xpad-noone*.rpm \
+        /tmp/akmods-rpms/kmods/*xpadneo*.rpm && \
     sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/negativo17-fedora-multimedia.repo && \
     mkdir -p /etc/akmods-rpms/ && \
     mv /tmp/akmods-rpms/kmods/*steamdeck*.rpm /etc/akmods-rpms/
@@ -62,7 +61,11 @@ RUN rpm-ostree override remove \
         htop
 
 # Install new packages
-RUN rpm-ostree install \
+RUN if [[ "${IMAGE_FLAVOR}" =~ "nvidia" ]]; then \
+        rpm-ostree override remove \
+            glibc32 \
+    ; fi && \
+    rpm-ostree install \
         ublue-update \
         discover-overlay \
         python3-pip \
@@ -92,6 +95,7 @@ RUN rpm-ostree install \
         libxcrypt-compat \
         mesa-libGLU \
         vulkan-tools \
+        glibc.i686 \
         extest.i686 \
         twitter-twemoji-fonts \
         google-noto-sans-cjk-fonts \
@@ -108,7 +112,19 @@ RUN rpm-ostree install \
     wget https://gitlab.com/popsulfr/steamos-btrfs/-/raw/main/files/usr/lib/systemd/system/btrfs-dedup@.timer -O /usr/lib/systemd/system/btrfs-dedup@.timer
 
 # Install Steam & Lutris, plus supporting packages
-RUN rpm-ostree install \
+RUN rpm-ostree override replace \
+    --experimental \
+    --from repo=updates \
+        pipewire \
+        pipewire-alsa \
+        pipewire-gstreamer \
+        pipewire-jack-audio-connection-kit \
+        pipewire-jack-audio-connection-kit-libs \
+        pipewire-libs \
+        pipewire-pulseaudio \
+        pipewire-utils \
+        || true && \
+    rpm-ostree install \
         vulkan-loader.i686 \
         alsa-lib.i686 \
         fontconfig.i686 \
@@ -208,7 +224,6 @@ RUN if grep -q "kinoite" <<< "${BASE_IMAGE_NAME}"; then \
         gnome-control-center-filesystem && \
     rpm-ostree install \
         gnome-shell-extension-tailscale-gnome-qs \
-        xwaylandvideobridge \
         steamdeck-backgrounds \
         gnome-randr-rust \
         gnome-shell-extension-user-theme \
@@ -254,7 +269,7 @@ RUN rpm-ostree override replace \
 RUN if grep -qv "nvidia" <<< "${IMAGE_NAME}"; then \
     rpm-ostree install \
         gamescope.x86_64 \
-        gamescope.i686 \
+        gamescope-libs.i686 \
         rocm-hip \
         rocm-opencl \
         rocm-clinfo \
@@ -341,11 +356,11 @@ RUN /tmp/image-info.sh && \
 
 FROM bazzite as bazzite-deck
 
-ARG IMAGE_NAME="${IMAGE_NAME}"
-ARG IMAGE_VENDOR="${IMAGE_VENDOR}"
-ARG IMAGE_FLAVOR="${IMAGE_FLAVOR}"
-ARG BASE_IMAGE_NAME="${BASE_IMAGE_NAME}"
-ARG FEDORA_MAJOR_VERSION="${FEDORA_MAJOR_VERSION}"
+ARG IMAGE_NAME="${IMAGE_NAME:-bazzite-deck}"
+ARG IMAGE_VENDOR="${IMAGE_VENDOR:-ublue-os}"
+ARG IMAGE_FLAVOR="${IMAGE_FLAVOR:-main}"
+ARG BASE_IMAGE_NAME="${BASE_IMAGE_NAME:-kinoite}"
+ARG FEDORA_MAJOR_VERSION="${FEDORA_MAJOR_VERSION:-39}"
 
 COPY system_files/deck/shared system_files/deck/${BASE_IMAGE_NAME} /
 

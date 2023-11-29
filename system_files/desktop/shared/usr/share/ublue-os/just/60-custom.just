@@ -20,13 +20,19 @@ configure-waydroid:
     deactivate
     sudo rm -rf /tmp/waydroid_script
 
-# Install CoreCtrl for overclocking & undervolting AMD GPUs
-install-corectrl:
-    echo 'Installing CoreCtrl...'
+# Install LACT for overclocking & undervolting AMD GPUs
+install-lact:
+    echo 'Installing LACT...'
     ublue-update --wait
-    rpm-ostree install corectrl
-    echo 'Setting needed kargs for CoreCtrl...'
+    wget \
+      $(curl -s https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest | \
+      jq -r ".assets[] | select(.name | test(\"lact-.*fedora-$(rpm -E %fedora)\")) | .browser_download_url") \
+      -P /tmp/lact.rpm
+    rpm-ostree install /tmp/lact.rpm
+    rm /tmp/lact.rpm
+    echo 'Setting needed kargs for LACT...'
     rpm-ostree kargs --append="amdgpu.ppfeaturemask=0xffffffff"
+    echo 'Done. Be sure to enable LACT with sudo systemctl enable --now lactd after you reboot.'
 
 # Install OpenRazer for Razer gaming hardware
 install-openrazer:
@@ -38,43 +44,6 @@ install-openrazer:
     ; fi && \
     sudo usermod -a -G plugdev $USER && \
     echo "Please reboot to apply needed changes."
-
-# Install Nix with the Determinate Nix Installer
-install-nix:
-    #!/usr/bin/env bash
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sudo bash -s -- install --no-confirm
-
-# Uninstall Nix
-remove-nix:
-    sudo /nix/nix-installer uninstall
-
-# Install Fleek (https://getfleek.dev/)
-install-fleek:
-    #!/usr/bin/env bash
-    if [[ -d "/nix" ]]; then
-      mkdir -p $HOME/.config/nix
-      echo "experimental-features = nix-command flakes" >> $HOME/.config/nix/nix.conf
-      curl -fsSL https://getfleek.dev/installer | env FORCE=1 bash
-    else
-      echo "Install nix with ujust install-nix before running ujust install-fleek."
-    fi
-
-# Integrate Nix/Fleek applications with system theme
-install-fleek-themes:
-    #!/usr/bin/env bash
-    if [[ -x "/var/usrlocal/bin/fleek" ]]; then
-      IMAGE_INFO="/usr/share/ublue-os/image-info.json"
-      BASE_IMAGE_NAME=$(jq -r '."base-image-name"' < $IMAGE_INFO)
-      if [[ ${BASE_IMAGE_NAME} == 'silverblue' ]]; then
-        fleek add adw-gtk3 --apply
-      else
-        fleek add breeze-icons
-        fleek add libsForQt5.breeze-qt5
-        fleek apply
-      fi
-    else
-      echo "Install fleek with ujust install-fleek before running ujust install-fleek-themes."
-    fi
 
 # Install Greenlight xCloud and xHome streaming AppImage
 get-greenlight:
@@ -248,10 +217,8 @@ enable-vfio:
     CPU_VENDOR=$(grep "vendor_id" "/proc/cpuinfo" | uniq | awk -F": " '{ print $2 }')
     VENDOR_KARG="unset"
     if [[ ${VIRT_TEST} == *kvm.report_ignored_msrs* ]]; then
-      rpm-ostree initramfs \
-        --enable \
-        --arg="--add-drivers" \
-        --arg="vfio vfio_iommu_type1 vfio-pci"
+        echo 'add_drivers+=" vfio vfio_iommu_type1 vfio-pci "' | sudo tee /etc/dracut.conf.d/vfio.conf
+        sudo touch /etc/bazzite/initramfs/rebuild
       if [[ ${CPU_VENDOR} == "AuthenticAMD" ]]; then
         VENDOR_KARG="amd_iommu=on"
       elif [[ ${CPU_VENDOR} == "GenuineIntel" ]]; then
@@ -266,7 +233,7 @@ enable-vfio:
           --append-if-missing="iommu=pt" \
           --append-if-missing="rd.driver.pre=vfio_pci" \
           --append-if-missing="vfio_pci.disable_vga=1"
-        echo "VFIO enabled, make sure you enable IOMMU, VT-d or AMD-v in your BIOS!"
+        echo "VFIO will be enabled on next boot, make sure you enable IOMMU, VT-d or AMD-v in your BIOS!"
         echo "Please understand that since this is such a niche use case, support will be very limited!"
         echo "To add your unused/second GPU device ids to the vfio driver by running"
         echo 'rpm-ostree kargs --append-if-missing="vfio-pci.ids=xxxx:yyyy,xxxx:yyzz"'
