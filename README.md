@@ -3,7 +3,7 @@
 </p>
 
 [![build-bazzite](https://github.com/ublue-os/bazzite/actions/workflows/build.yml/badge.svg)](https://github.com/ublue-os/bazzite/actions/workflows/build.yml)
-
+f
 ---
 # Table of Contents
 - [Features for **All** Bazzite Images](https://github.com/ublue-os/bazzite#about--features)
