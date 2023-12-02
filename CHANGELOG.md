@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.1.0](https://github.com/hisergiorojas/bazzite/compare/v2.0.2...v2.1.0) (2023-12-02)
+
+
+### Features
+
+* add initramfs rebuilding with support for user defined initramfs args ([#586](https://github.com/hisergiorojas/bazzite/issues/586)) ([0a97588](https://github.com/hisergiorojas/bazzite/commit/0a9758813f386cdd9621730f932f0d38bb52fd27))
+* **desktop:** Restore displaylink on desktop images, leave off of deck images until issues with MangoHUD are resolved. ([d8ee043](https://github.com/hisergiorojas/bazzite/commit/d8ee04376d115568354a44aa2c977855e410ab37))
+* **desktop:** Switch from CoreCtrl to LACT as the default AMD overclocking solution. ([083dda2](https://github.com/hisergiorojas/bazzite/commit/083dda26c6f7935d1e6a07c53bf629c5924c83a7))
+
+
+### Bug Fixes
+
+* Always return pipewire replacement as true ([72b73e8](https://github.com/hisergiorojas/bazzite/commit/72b73e884e983c2a83688fe01be7395d2dd40772))
+* Install proper 32 bit glibc package ([0b2c9af](https://github.com/hisergiorojas/bazzite/commit/0b2c9af2a09138b630f0cdc694e56d22eb86246a))
+* **legion:** Disable X11 by default to correct issues with display rotation ([f6f407e](https://github.com/hisergiorojas/bazzite/commit/f6f407e8e16e944fae5b0a7b5ced8877e241bbb4))
+* **nvidia:** Remove older 32 bit glibc package ([290f766](https://github.com/hisergiorojas/bazzite/commit/290f766affc9f87afc6758026abb5432549a5097))
+* Reinstall pipewire from Fedora updates ([06d49d9](https://github.com/hisergiorojas/bazzite/commit/06d49d96738bbc7919a32a88835ff2b01a234019))
+* Temporarily remove xwaylandvideobridge, fixes white box issue ([e9e6087](https://github.com/hisergiorojas/bazzite/commit/e9e60873708660f971d6d0d090190e35440d4e9c))
+
 ## [2.0.2](https://github.com/hisergiorojas/bazzite/compare/v2.0.2...v2.0.2) (2023-11-24)
 
 
