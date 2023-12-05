@@ -243,7 +243,8 @@ RUN if grep -q "kinoite" <<< "${BASE_IMAGE_NAME}"; then \
         gnome-classic-session \
         gnome-tour \
         gnome-extensions-app \
-        gnome-initial-setup \
+        gnome-initial-setup && \
+    systemctl enable dconf-update.service \
 ; fi
 
 # Install gamescope-limiter patched Mesa
@@ -402,7 +403,6 @@ RUN if grep -q "kinoite" <<< "${BASE_IMAGE_NAME}"; then \
 RUN rpm-ostree install \
     jupiter-fan-control \
     jupiter-hw-support-btrfs \
-    steamdeck-dsp \
     galileo-mura \
     powerbuttond \
     HandyGCCS \
@@ -430,18 +430,33 @@ RUN rpm-ostree install \
     mv -v /tmp/jupiter-dock-updater-bin/packaged/usr/lib/jupiter-dock-updater /usr/lib/jupiter-dock-updater && \
     rm -rf /tmp/jupiter-dock-updater-bin && \
     mkdir -p /tmp/linux-firmware-neptune && \
-    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter/cs35l41-dsp1-spk-cali.bin -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-cali.bin && \
-    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter/cs35l41-dsp1-spk-cali.wmfw -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-cali.wmfw && \
-    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter/cs35l41-dsp1-spk-prot.bin -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-prot.bin && \
-    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter/cs35l41-dsp1-spk-prot.wmfw -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-prot.wmfw && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/cs35l41-dsp1-spk-cali.bin -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-cali.bin && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/cs35l41-dsp1-spk-cali.wmfw -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-cali.wmfw && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/cs35l41-dsp1-spk-prot.bin -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-prot.bin && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/cs35l41-dsp1-spk-prot.wmfw -O /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-prot.wmfw && \
     xz --check=crc32 /tmp/linux-firmware-neptune/cs35l41-dsp1-spk-{cali.bin,cali.wmfw,prot.bin,prot.wmfw} && \
     mv -vf /tmp/linux-firmware-neptune/* /usr/lib/firmware/cirrus/ && \
-    rm -rf /tmp/linux-firmware-neptune
+    rm -rf /tmp/linux-firmware-neptune && \
+    mkdir -p /tmp/linux-firmware-galileo && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/archive/jupiter-20231113.1/linux-firmware-neptune-jupiter-20231113.1.tar.gz?path=ath11k/QCA206X -O /tmp/linux-firmware-galileo/ath11k.tar.gz && \
+    tar --strip-components 1 -xvf /tmp/linux-firmware-galileo/ath11k.tar.gz -C /tmp/linux-firmware-galileo && \
+    xz --check=crc32 /tmp/linux-firmware-galileo/ath11k/QCA206X/hw2.1/* && \
+    mv -vf /tmp/linux-firmware-galileo/ath11k/QCA206X /usr/lib/firmware/ath11k/QCA206X && \
+    rm -rf /tmp/linux-firmware-galileo/ath11k && \
+    rm -rf /tmp/linux-firmware-galileo/ath11k.tar.gz && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/qca/hpbtfw21.tlv -O /tmp/linux-firmware-galileo/hpbtfw21.tlv && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/qca/hpnv21.309 -O /tmp/linux-firmware-galileo/hpnv21.309 && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/qca/hpnv21.bin -O /tmp/linux-firmware-galileo/hpnv21.bin && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/qca/hpnv21g.309 -O /tmp/linux-firmware-galileo/hpnv21g.309 && \
+    wget https://gitlab.com/evlaV/linux-firmware-neptune/-/raw/jupiter-20231113.1/qca/hpnv21g.bin -O /tmp/linux-firmware-galileo/hpnv21g.bin && \
+    xz --check=crc32 /tmp/linux-firmware-galileo/* && \
+    mv -vf /tmp/linux-firmware-galileo/* /usr/lib/firmware/qca/ && \
+    rm -rf /tmp/linux-firmware-galileo
 
 # Install Gamescope Session & Supporting changes
 # Add bootstraplinux_ubuntu12_32.tar.xz used by gamescope-session (Thanks ChimeraOS! - https://chimeraos.org/)
 # Remove Feral gamemode, System76-Scheduler supersedes this
-RUN wget https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steam-jupiter-stable-1.0.0.76-1-x86_64.pkg.tar.zst -O /tmp/steam-jupiter.pkg.tar.zst && \
+RUN wget https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steam-jupiter-stable-1.0.0.78-1.2-x86_64.pkg.tar.zst -O /tmp/steam-jupiter.pkg.tar.zst && \
     mkdir -p /usr/etc/first-boot && \
     tar -I zstd -xvf /tmp/steam-jupiter.pkg.tar.zst usr/lib/steam/bootstraplinux_ubuntu12_32.tar.xz -O > /usr/etc/first-boot/bootstraplinux_ubuntu12_32.tar.xz && \
     rm -f /tmp/steam-jupiter.pkg.tar.zst && \

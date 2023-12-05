@@ -27,7 +27,7 @@ install-lact:
     wget \
       $(curl -s https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest | \
       jq -r ".assets[] | select(.name | test(\"lact-.*fedora-$(rpm -E %fedora)\")) | .browser_download_url") \
-      -P /tmp/lact.rpm
+      -O /tmp/lact.rpm
     rpm-ostree install /tmp/lact.rpm
     rm /tmp/lact.rpm
     echo 'Setting needed kargs for LACT...'
@@ -49,10 +49,10 @@ install-openrazer:
 get-greenlight:
     #!/usr/bin/env bash
     if grep -q 'it.mijorus.gearlever' <<< $(flatpak list); then
-      wget https://github.com/unknownskl/greenlight/releases/download/v2.0.0-beta14/Greenlight-2.0.0-beta14.AppImage -O $HOME/Downloads/Greenlight.AppImage
+      wget https://github.com/unknownskl/greenlight/releases/download/v2.0.0-beta15/Greenlight-2.0.0-beta15.AppImage -O $HOME/Downloads/Greenlight.AppImage
       flatpak run it.mijorus.gearlever $HOME/Downloads/Greenlight.AppImage
     else
-      wget https://github.com/unknownskl/greenlight/releases/download/v2.0.0-beta14/Greenlight-2.0.0-beta14.AppImage -O $HOME/Desktop/Greenlight.AppImage
+      wget https://github.com/unknownskl/greenlight/releases/download/v2.0.0-beta15/Greenlight-2.0.0-beta15.AppImage -O $HOME/Desktop/Greenlight.AppImage
       chmod +x $HOME/Desktop/Greenlight.AppImage
     fi
 
@@ -72,7 +72,7 @@ enable-supergfxctl:
     #!/usr/bin/env bash
     IMAGE_INFO="/usr/share/ublue-os/image-info.json"
     IMAGE_FLAVOR=$(jq -r '."image-flavor"' < $IMAGE_INFO)
-    if [[ ${IMAGE_FLAVOR} == 'nvidia' ]]; then
+    if [[ "$IMAGE_FLAVOR" =~ "nvidia" ]]; then
       systemctl enable --now supergfxd.service
     else
       echo "This requires an Nvidia image."

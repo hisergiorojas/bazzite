@@ -6,12 +6,19 @@ License:        GPLv2
 URL:            https://github.com/ublue-os/bazzite
 Source:         https://gitlab.com/evlaV/valve-hardware-audio-processing/-/archive/main/valve-hardware-audio-processing-main.tar.gz
 
+Patch0:         fedora.patch
+
+Requires:       pipewire-module-filter-chain-lv2
+Requires:       ladspa-noise-suppression-for-voice
+Requires:       boost
+
 BuildRequires:  make
 BuildRequires:  faust
 BuildRequires:  faust-tools
 BuildRequires:  boost-devel
 BuildRequires:  lv2-devel
 BuildRequires:  g++
+BuildRequires:  ladspa-devel
 
 %description
 Steamdeck Audio Processing
@@ -20,13 +27,14 @@ Steamdeck Audio Processing
 %define debug_package %{nil}
 
 %prep
-%autosetup -n valve-hardware-audio-processing-main
+%setup -n valve-hardware-audio-processing-main
+%patch 0 -p1
 
 %build
 %make_build FAUSTINC="/usr/include/faust"  FAUSTLIB="/usr/share/faust"
 
 %install
-%make_install DEST_DIR="%{buildroot}"
+%make_install DEST_DIR="%{buildroot}" LIB_DIR="%{buildroot}%{_libdir}"
 mkdir -p %{buildroot}%{_datadir}/licenses/%{name}/
 cp LICENSE %{buildroot}%{_datadir}/licenses/%{name}/LICENSE
 
@@ -35,8 +43,8 @@ cp LICENSE %{buildroot}%{_datadir}/licenses/%{name}/LICENSE
 %files
 %license LICENSE
 %{_prefix}/lib/firmware/amd/*
-%{_prefix}/lib/lv2/svg/valve_deck_*
-%{_prefix}/lib/lv2/valve_*
+%{_libdir}/lv2/svg/valve_deck_*
+%{_libdir}/lv2/valve_*
 %{_datadir}/alsa/ucm2/conf.d/acp5x/*.conf
 %{_datadir}/alsa/ucm2/conf.d/sof-nau8821-max/*.conf
 %{_datadir}/pipewire/pipewire.conf.d/*.conf

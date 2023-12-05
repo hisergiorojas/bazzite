@@ -153,7 +153,6 @@ screens:
           - Mumble: info.mumble.Mumble
           - OpenMW: org.openmw.OpenMW
           - osu: sh.ppy.osu
-          - Parsec: com.parsecgaming.parsec
           - Space Cadet Pinball: com.github.k4zmu2a.spacecadetpinball
           - Sonic Robo Blast 2: org.srb2.SRB2
           - Steam Link: com.valvesoftware.SteamLink
@@ -182,7 +181,6 @@ screens:
           - Ryujinx: org.ryujinx.Ryujinx
           - ScummVM: org.scummvm.ScummVM
           - Snes9x: com.snes9x.Snes9x
-          - Stella: io.github.stella_emu.Stella
           - xemu: app.xemu.xemu
           - yuzu: org.yuzu_emu.yuzu
         Streaming:
@@ -259,8 +257,6 @@ screens:
       links:
       - "Install More Applications":
           run: /usr/bin/plasma-discover
-      - "Documentation":
-          run: /usr/bin/xdg-open https://universal-blue.discourse.group/docs?category=5
       - "Forums":
           run: /usr/bin/xdg-open https://universal-blue.discourse.group/c/bazzite/5
       - "Join the Discord Community":
